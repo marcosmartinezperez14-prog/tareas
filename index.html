@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tracker de Objetivos</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <header>
+            <h1>Mis Objetivos</h1>
+            <p>Gestiona tus tareas y alcanza tus metas paso a paso.</p>
+        </header>
+
+        <section class="task-form-section">
+            <form id="task-form">
+                <input type="text" id="task-input" placeholder="¿Qué deseas lograr?" required autocomplete="off">
+                <div class="form-controls">
+                    <select id="timeframe-select" required>
+                        <option value="daily">Diario</option>
+                        <option value="weekly">Semanal</option>
+                        <option value="monthly">Mensual</option>
+                    </select>
+                    <button type="submit" id="add-btn">Añadir Tarea</button>
+                </div>
+            </form>
+        </section>
+
+        <section class="dashboard">
+            <div class="column" id="col-daily">
+                <h2>Objetivos del Día</h2>
+                <div class="task-list" id="list-daily"></div>
+            </div>
+            <div class="column" id="col-weekly">
+                <h2>Objetivos de la Semana</h2>
+                <div class="task-list" id="list-weekly"></div>
+            </div>
+            <div class="column" id="col-monthly">
+                <h2>Objetivos del Mes</h2>
+                <div class="task-list" id="list-monthly"></div>
+            </div>
+        </section>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>
