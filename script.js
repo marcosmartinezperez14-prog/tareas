@@ -9,14 +9,24 @@ document.addEventListener('DOMContentLoaded', () => {
         monthly: document.getElementById('list-monthly')
     };
 
-    let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+    let tasks = [];
 
-    function saveTasks() {
-        localStorage.setItem('tasks', JSON.stringify(tasks));
+    // Cargar tareas desde el backend Vercel Serverless API
+    async function loadTasks() {
+        try {
+            const response = await fetch('/api/tasks');
+            if (response.ok) {
+                tasks = await response.json() || [];
+                renderTasks();
+            } else {
+                console.error("Error al cargar tareas:", response.statusText);
+            }
+        } catch (error) {
+            console.error("Error de red al cargar tareas:", error);
+        }
     }
 
     function renderTasks() {
-        // Clear all lists
         Object.values(lists).forEach(list => list.innerHTML = '');
 
         const categorizedTasks = {
@@ -37,7 +47,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 const taskEl = document.createElement('div');
                 taskEl.className = `task-item ${task.completed ? 'completed' : ''}`;
                 
-                // SVG for delete icon
                 const deleteIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`;
 
                 taskEl.innerHTML = `
@@ -46,7 +55,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     <button class="delete-btn" aria-label="Eliminar tarea">${deleteIcon}</button>
                 `;
 
-                // Event listeners for this task
                 const checkbox = taskEl.querySelector('.custom-checkbox');
                 checkbox.addEventListener('change', () => toggleTaskComplete(task.id));
 
@@ -58,7 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function addTask(e) {
+    async function addTask(e) {
         e.preventDefault();
         
         const text = taskInput.value.trim();
@@ -73,32 +81,63 @@ document.addEventListener('DOMContentLoaded', () => {
             completed: false
         };
 
-        tasks.push(newTask);
-        saveTasks();
-        renderTasks();
+        try {
+            const response = await fetch('/api/tasks', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newTask)
+            });
+
+            if (response.ok) {
+                const savedTask = await response.json();
+                tasks.push(savedTask);
+                renderTasks();
+            } else {
+                console.error("Error al añadir tarea:", response.statusText);
+            }
+        } catch (error) {
+            console.error("Error de red al añadir tarea:", error);
+        }
         
         taskInput.value = '';
         taskInput.focus();
     }
 
-    function toggleTaskComplete(id) {
-        tasks = tasks.map(task => {
-            if (task.id === id) {
-                return { ...task, completed: !task.completed };
+    async function toggleTaskComplete(id) {
+        try {
+            const response = await fetch(`/api/tasks?id=${id}`, {
+                method: 'PUT'
+            });
+
+            if (response.ok) {
+                const updatedTask = await response.json();
+                tasks = tasks.map(task => task.id === id ? updatedTask : task);
+                renderTasks();
+            } else {
+                console.error("Error al actualizar tarea:", response.statusText);
             }
-            return task;
-        });
-        saveTasks();
-        renderTasks();
+        } catch (error) {
+            console.error("Error de red al actualizar tarea:", error);
+        }
     }
 
-    function deleteTask(id) {
-        tasks = tasks.filter(task => task.id !== id);
-        saveTasks();
-        renderTasks();
+    async function deleteTask(id) {
+        try {
+            const response = await fetch(`/api/tasks?id=${id}`, {
+                method: 'DELETE'
+            });
+
+            if (response.ok) {
+                tasks = tasks.filter(task => task.id !== id);
+                renderTasks();
+            } else {
+                console.error("Error al eliminar tarea:", response.statusText);
+            }
+        } catch (error) {
+            console.error("Error de red al eliminar tarea:", error);
+        }
     }
 
-    // Helper to prevent XSS
     function escapeHTML(str) {
         const div = document.createElement('div');
         div.textContent = str;
@@ -107,6 +146,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     taskForm.addEventListener('submit', addTask);
 
-    // Initial render
-    renderTasks();
+    // Initial load
+    loadTasks();
 });
